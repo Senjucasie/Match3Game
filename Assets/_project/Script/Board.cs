@@ -9,12 +9,16 @@ public class Board : MonoBehaviour
 
     [SerializeField] private GameObject _tilePrefab;
 
+    [SerializeField] private float _borderSize;
+
     private Tile[,] _tileArray;
 
     private void Awake()
     {
+        _borderSize = 5;
         _tileArray = new Tile[_width, _height];
         SetUpTiles();
+        SetUpCamera();
     }
 
     private void SetUpTiles()
@@ -29,5 +33,18 @@ public class Board : MonoBehaviour
                 _tileArray[x, y] = tile.GetComponent<Tile>();
             }
         }
+    }
+
+    //Adjusting camera orthogonal size and position according to the sizeof grid
+    private void SetUpCamera()
+    {
+        Camera cam = Camera.main;
+        cam.transform.position = new Vector3((_width - 1f) / 2f, (_height - 1f) / 2f, cam.transform.position.z);
+        float aspectratio = (float)Screen.width / (float)Screen.height;
+        float vericalsize = (float)_height / 2 + _borderSize;
+        float horizontalsize = (float)_width / 2 + _borderSize / aspectratio;
+
+        cam.orthographicSize = vericalsize > horizontalsize ? vericalsize : horizontalsize;
+        
     }
 }
