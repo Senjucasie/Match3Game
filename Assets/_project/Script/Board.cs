@@ -15,7 +15,6 @@ public class Board : MonoBehaviour
 
     private void Awake()
     {
-        _borderSize = 5;
         _tileArray = new Tile[_width, _height];
         SetUpTiles();
         SetUpCamera();
@@ -42,7 +41,7 @@ public class Board : MonoBehaviour
         cam.transform.position = new Vector3((_width - 1f) / 2f, (_height - 1f) / 2f, cam.transform.position.z);
         float aspectratio = (float)Screen.width / (float)Screen.height;
         float vericalsize = (float)_height / 2 + _borderSize;
-        float horizontalsize = (float)_width / 2 + _borderSize / aspectratio;
+        float horizontalsize = ((float)_width / 2 + _borderSize) / aspectratio;
 
         cam.orthographicSize = vericalsize > horizontalsize ? vericalsize : horizontalsize;
         

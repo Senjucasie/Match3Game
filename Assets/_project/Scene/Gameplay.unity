@@ -155,6 +155,7 @@ MonoBehaviour:
   _width: 8
   _height: 20
   _tilePrefab: {fileID: 7458461185825178676, guid: c0f87d783295cb740a729a5de156529d, type: 3}
+  _borderSize: 3
 --- !u!4 &14018665
 Transform:
   m_ObjectHideFlags: 0
