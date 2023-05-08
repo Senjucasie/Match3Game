@@ -4,15 +4,18 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public int XIndex { get; private set; }
+    public int YIndex { get; private set; }
+    private Board _board;
 
-    // Update is called once per frame
-    void Update()
+    private void Start()
     {
-        
+    
+    }
+    public void Init(int xindex,int yindex,Board board)
+    {
+        XIndex = xindex;
+        YIndex = yindex;
+        _board = board;
     }
 }
