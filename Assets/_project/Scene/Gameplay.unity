@@ -156,6 +156,12 @@ MonoBehaviour:
   _height: 9
   _tilePrefab: {fileID: 7458461185825178676, guid: c0f87d783295cb740a729a5de156529d, type: 3}
   _borderSize: 2
+  _gamePiecesPF:
+  - {fileID: 3009954597122605735, guid: 419c983597dc77a4a93001e0c54b88d3, type: 3}
+  - {fileID: 2848304130609615976, guid: 68747f3dd18cd804887c660797a78dcf, type: 3}
+  - {fileID: 3711847479378440045, guid: 5546df830a733f1439b4ac7e2d4d7e5f, type: 3}
+  - {fileID: 6275299171681886513, guid: b37d07e93ed185c4f9d9b32ea65b4219, type: 3}
+  - {fileID: 7461131315588242416, guid: 4db2b29a7c6d72f47a64b200fe9c3ece, type: 3}
 --- !u!4 &14018665
 Transform:
   m_ObjectHideFlags: 0

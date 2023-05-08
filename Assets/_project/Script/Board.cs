@@ -11,6 +11,9 @@ public class Board : MonoBehaviour
 
     [SerializeField] private float _borderSize;
 
+    [SerializeField] private GameObject[] _gamePiecesPF;
+
+    private GamePiece[,] _gamePieceArray;
     private Tile[,] _tileArray;
 
     private void Awake()
@@ -18,16 +21,17 @@ public class Board : MonoBehaviour
         _tileArray = new Tile[_width, _height];
         SetUpTiles();
         SetUpCamera();
+        FillRandom();
     }
 
     private void SetUpTiles()
     {
-        for(int y=0;y<_height;y++)
+        for (int y = 0; y < _height; y++)
         {
-            for(int x=0;x<_width;x++)
+            for (int x = 0; x < _width; x++)
             {
                 Debug.Log(x + "," + y);
-                GameObject tile = Instantiate(_tilePrefab, new Vector3(x, y, 0), Quaternion.identity,transform);
+                GameObject tile = Instantiate(_tilePrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
                 tile.name = $"Tile {x},{y}";
                 _tileArray[x, y] = tile.GetComponent<Tile>();
                 _tileArray[x, y].Init(x, y, this);
@@ -45,6 +49,47 @@ public class Board : MonoBehaviour
         float horizontalsize = ((float)_width / 2 + _borderSize) / aspectratio;
 
         cam.orthographicSize = vericalsize > horizontalsize ? vericalsize : horizontalsize;
-        
+
+    }
+
+    private GameObject GetRandomGamePiece()
+    {
+        if (_gamePiecesPF == null)
+        {
+            Debug.LogWarning($"The array is null {_gamePieceArray}");
+            return null;
+        }
+        else
+        {
+            int random = Random.Range(0, _gamePiecesPF.Length);
+            return _gamePiecesPF[random];
+        }
+
+    }
+
+    private void PlaceGamePiece(GamePiece gamepiece, int x, int y)
+    {
+        if (gamepiece == null)
+        {
+            Debug.LogWarning($"{gamepiece} is null");
+            return;
+        }
+        else
+        {
+            gamepiece.transform.position = new Vector3Int(x, y, 0);
+            gamepiece.SetIndex(x, y);
+        }
+    }
+
+    private void FillRandom()
+    {
+        for (int y = 0; y < _height; y++)
+        {
+            for (int x = 0; x < _width; x++)
+            {
+                GameObject randompiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
+                PlaceGamePiece(randompiece.GetComponent<GamePiece>(), x, y);
+            }
+        }
     }
 }
