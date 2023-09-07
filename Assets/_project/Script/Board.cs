@@ -19,6 +19,11 @@ public class Board : MonoBehaviour
     private void Awake()
     {
         _tileArray = new Tile[_width, _height];
+      
+    }
+
+    private void Start()
+    {
         SetUpTiles();
         SetUpCamera();
         FillRandom();
