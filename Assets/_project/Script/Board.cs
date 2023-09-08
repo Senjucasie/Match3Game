@@ -16,6 +16,9 @@ public class Board : MonoBehaviour
     private GamePiece[,] _gamePieceArray;
     private Tile[,] _tileArray;
 
+    private Tile _clickedTile;
+    private Tile _targetTile;
+
     private void Awake()
     {
         _tileArray = new Tile[_width, _height];
@@ -97,4 +100,35 @@ public class Board : MonoBehaviour
             }
         }
     }
+
+    public void ClickTile(Tile tile)
+    {
+        if(_clickedTile== null)
+        {
+            _clickedTile = tile;
+        }
+        
+    }
+
+    public void DragToTile(Tile tile)
+    {
+        if(_clickedTile!=null)
+        {
+            _targetTile = tile;
+        }
+    }
+
+    public void ReleaseMouseButton()
+    {
+        if(_targetTile!=null && _clickedTile!=null)
+        {
+        
+        }
+
+         _clickedTile = _targetTile = null;
+    }
+
+    
+
+    
 }

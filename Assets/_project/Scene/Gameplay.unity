@@ -155,7 +155,7 @@ MonoBehaviour:
   _width: 7
   _height: 9
   _tilePrefab: {fileID: 7458461185825178676, guid: c0f87d783295cb740a729a5de156529d, type: 3}
-  _borderSize: 2
+  _borderSize: 1.5
   _gamePiecesPF:
   - {fileID: 3009954597122605735, guid: 419c983597dc77a4a93001e0c54b88d3, type: 3}
   - {fileID: 2848304130609615976, guid: 68747f3dd18cd804887c660797a78dcf, type: 3}
