@@ -29,13 +29,13 @@ public class Board : MonoBehaviour
         FillRandom();
     }
 
+    //Instantiating BackGround Tile
     private void SetUpTiles()
     {
         for (int y = 0; y < _height; y++)
         {
             for (int x = 0; x < _width; x++)
             {
-                Debug.Log(x + "," + y);
                 GameObject tile = Instantiate(_tilePrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
                 tile.name = $"Tile {x},{y}";
                 _tileArray[x, y] = tile.GetComponent<Tile>();

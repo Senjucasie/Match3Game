@@ -8,7 +8,7 @@ public class GamePiece : MonoBehaviour
     [field:SerializeField]public int XIndex { get; private set; }
     [field:SerializeField]public int YIndex { get; private set; }
 
-    private bool _isMoving = false;
+    private Coroutine _moveCoroutine;
 
     public void SetIndex(int x, int y)
     {
@@ -30,13 +30,12 @@ public class GamePiece : MonoBehaviour
 
     public void Move(int destx, int desty,float timetomove)
     {
-        if(!_isMoving)
-            StartCoroutine(MoveRoutine(new Vector3(destx, desty, 0), timetomove));
+        if(_moveCoroutine ==null)
+            _moveCoroutine = StartCoroutine(MoveRoutine(new Vector3(destx, desty, 0), timetomove));
     }
 
     private IEnumerator MoveRoutine(Vector3 destination, float timetomove)
     {
-        _isMoving = true;
         bool reachdestination = false;
         Vector3 startpos = transform.position;
         float elapsedtime = 0;
@@ -44,7 +43,6 @@ public class GamePiece : MonoBehaviour
         {
             elapsedtime += Time.deltaTime;
             float t = elapsedtime / timetomove;
-
             transform.position = Vector3.Lerp(startpos, destination, t);
 
             if (Vector2.Distance(transform.position,destination)<0.01f)
@@ -52,9 +50,9 @@ public class GamePiece : MonoBehaviour
                 transform.position = destination;
                 reachdestination = true;
                 SetIndex((int)destination.x, (int)destination.y);
-                Debug.Log("in");
-                _isMoving = false;
+                _moveCoroutine = null;
             }
+
             yield return null;
         }
 
