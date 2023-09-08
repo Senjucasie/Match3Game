@@ -54,32 +54,28 @@ public class GamePiece : MonoBehaviour
         //ease in and out smoother step variation https://en.wikipedia.org/wiki/Smoothstep
         //t = (6 * Mathf.Pow(t, 5)) - (15 * Mathf.Pow(t, 4))+(10*Mathf.Pow(t,3));
         while (!reachdestination)
+        {
+            elapsedtime += Time.deltaTime;
+            float t = elapsedtime / timetomove;
+
+            switch(_interpolationType)
             {
-                elapsedtime += Time.deltaTime;
-                float t = elapsedtime / timetomove;
-                switch(_interpolationType)
-                {
-                    case InterpolationType.Linear:
-                        break;
-                    case InterpolationType.EaseIn:
-                        t = t * t;
-                        break;
-                    case InterpolationType.EaseOut:
-                        t = 1 - Mathf.Pow(1 - t, 2);
-                        break;
-                    case InterpolationType.SmoothStep:
-                        t = (3 * Mathf.Pow(t, 2)) - (2 * Mathf.Pow(t, 3));
-                        break;
-                    case InterpolationType.SmootherStep:
-                        t = (6 * Mathf.Pow(t, 5)) - (15 * Mathf.Pow(t, 4)) + (10 * Mathf.Pow(t, 3));
-                        break;
-                }
-           
-
-
-
-    transform.position = Vector3.Lerp(startpos, destination, t);
-
+                case InterpolationType.Linear:
+                    break;
+                case InterpolationType.EaseIn:
+                    t = t * t;
+                    break;
+                case InterpolationType.EaseOut:
+                    t = 1 - Mathf.Pow(1 - t, 2);
+                    break;
+                case InterpolationType.SmoothStep:
+                    t = (3 * Mathf.Pow(t, 2)) - (2 * Mathf.Pow(t, 3));
+                    break;
+                case InterpolationType.SmootherStep:
+                    t = (6 * Mathf.Pow(t, 5)) - (15 * Mathf.Pow(t, 4)) + (10 * Mathf.Pow(t, 3));
+                    break;
+            }
+            transform.position = Vector3.Lerp(startpos, destination, t);
             if (Vector2.Distance(transform.position,destination)<0.01f)
             {
                 transform.position = destination;
@@ -87,8 +83,7 @@ public class GamePiece : MonoBehaviour
                 SetIndex((int)destination.x, (int)destination.y);
                 _moveCoroutine = null;
             }
-
-            yield return null;
+                yield return null;
         }
 
     }
