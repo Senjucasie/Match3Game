@@ -97,3 +97,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 79d0f810cfa76424197c48af44ae125a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  <XIndex>k__BackingField: 0
+  <YIndex>k__BackingField: 0
+  _interpolationType: 4
