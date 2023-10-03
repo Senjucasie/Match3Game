@@ -87,11 +87,11 @@ public class Board : MonoBehaviour
         }
         else
         {
-            gamepiece.transform.position = new Vector3Int(x, y, 0);
-            gamepiece.Init(this);
-            gamepiece.SetIndex(x, y);
             if(IsWithInBounds(x,y))
             {
+                gamepiece.transform.position = new Vector3Int(x, y, 0);
+                gamepiece.Init(this);
+                gamepiece.SetIndex(x, y);
                 _gamePieceArray[x, y] = gamepiece;
             }
         }
@@ -99,14 +99,7 @@ public class Board : MonoBehaviour
 
     private bool IsWithInBounds(int x, int y)
     {
-        if (x >= 0 && x < _width && y >= 0 && y < _height)
-        {
-            return true;
-        }
-        else
-        {
-        return false;
-        }
+        return (x >= 0 && x < _width && y >= 0 && y < _height);
     }
     private void FillRandom()
     {
@@ -156,25 +149,27 @@ public class Board : MonoBehaviour
         GamePiece clickedgamepiece = _gamePieceArray[clickedtile.XIndex, clickedtile.YIndex];
         GamePiece targetgamepiece = _gamePieceArray[targettile.XIndex, targettile.YIndex];
         
-        
-
-        clickedgamepiece.Move(targettile.XIndex, targettile.YIndex, _swapTime);
-        targetgamepiece.Move(clickedtile.XIndex, clickedtile.YIndex, _swapTime);
-
-        yield return new WaitForSeconds(_swapTime);
-        var clickgamepiecematch = FindMatchesAt(clickedgamepiece);
-        var targetgamepiecematch = FindMatchesAt(targetgamepiece);
-        if(clickgamepiecematch.Count==0 && targetgamepiecematch.Count==0)
+        if(targetgamepiece!=null && clickedgamepiece!=null)
         {
-            clickedgamepiece.Move(clickedtile.XIndex, clickedtile.YIndex, _swapTime);
-            targetgamepiece.Move(targettile.XIndex, targettile.YIndex, _swapTime);
+            clickedgamepiece.Move(targettile.XIndex, targettile.YIndex, _swapTime);
+            targetgamepiece.Move(clickedtile.XIndex, clickedtile.YIndex, _swapTime);
+
+            yield return new WaitForSeconds(_swapTime);
+
+            var clickgamepiecematch = FindMatchesAt(clickedgamepiece);
+            var targetgamepiecematch = FindMatchesAt(targetgamepiece);
+            if (clickgamepiecematch.Count == 0 && targetgamepiecematch.Count == 0)
+            {
+                clickedgamepiece.Move(clickedtile.XIndex, clickedtile.YIndex, _swapTime);
+                targetgamepiece.Move(targettile.XIndex, targettile.YIndex, _swapTime);
+            }
+            else
+            {
+                var combinedgamepiece = clickgamepiecematch.Union(targetgamepiecematch).ToList();
+                ClearGamePieces(combinedgamepiece);
+            }
         }
-        else
-        {
-            HighLightTilesAT(clickedtile);
-            HighLightTilesAT(targettile);
-        }
-        
+
         
     }
     private bool IsNeighbourTile(Tile clickedtile,Tile draggedtile)
@@ -211,11 +206,19 @@ public class Board : MonoBehaviour
 
     public void HighLightTilesAT(Tile tile)
     {
-    var macthedgamepiece = FindMatchesAt(_gamePieceArray[tile.XIndex, tile.YIndex]);
-    foreach (GamePiece piece in macthedgamepiece)
-    {
-        _tileArray[piece.XIndex, piece.YIndex].GetComponent<SpriteRenderer>().color = piece.GetComponent<SpriteRenderer>().color;
+        var macthedgamepiece = FindMatchesAt(_gamePieceArray[tile.XIndex, tile.YIndex]);
+        foreach (GamePiece piece in macthedgamepiece)
+        {
+            _tileArray[piece.XIndex, piece.YIndex].GetComponent<SpriteRenderer>().color = piece.GetComponent<SpriteRenderer>().color;
+        }
     }
+    private void HightLightTilesOff(List<Tile> tiles)
+    {
+        foreach(Tile tile in tiles)
+        {
+            SpriteRenderer renderer=tile.GetComponent<SpriteRenderer>();
+            renderer.color = new Color(renderer.color.r, renderer.color.g, renderer.color.b, 0);
+        }
     }
     private void HighlightMatches()
     {
@@ -277,7 +280,9 @@ public class Board : MonoBehaviour
         {
             return null;
         }
+
         int maxvalue = _width > _height ? _width : _height;
+
         for(int i=1; i<maxvalue;i++)
         {
             int x = startpiece.XIndex + i * (int)direction.x;
@@ -287,7 +292,7 @@ public class Board : MonoBehaviour
                 break;
             }
             GamePiece nextpiece = _gamePieceArray[x, y];
-            if (nextpiece.Type==startpiece.Type)
+            if (nextpiece !=null && nextpiece.Type==startpiece.Type && !matchlist.Contains(nextpiece))
             {
                 matchlist.Add(nextpiece);
             }
@@ -296,14 +301,18 @@ public class Board : MonoBehaviour
                 break;
             }
         }
-        if(matchlist.Count>=minmatch)
+        return matchlist.Count >= minmatch ? matchlist : null;
+        
+    }
+    private void ClearGamePiece(GamePiece gamepiece)
+    {
+        Destroy(gamepiece.gameObject);
+    }
+    private void ClearGamePieces(List<GamePiece> gamepiece)
+    {
+        foreach(GamePiece piece in gamepiece)
         {
-  
-            return matchlist;
-        }
-        else
-        {
-            return null;
+            ClearGamePiece(piece);
         }
     }
     
