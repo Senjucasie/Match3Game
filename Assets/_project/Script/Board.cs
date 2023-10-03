@@ -1,9 +1,11 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Board : MonoBehaviour
 {
+    [SerializeField] private float _swapTime;
     [SerializeField] private int _width;
     [SerializeField] private int _height;
 
@@ -15,14 +17,15 @@ public class Board : MonoBehaviour
 
     private GamePiece[,] _gamePieceArray;
     private Tile[,] _tileArray;
-
+    
     private Tile _clickedTile;
     private Tile _targetTile;
 
     private void Awake()
     {
         _tileArray = new Tile[_width, _height];
-      
+        _gamePieceArray = new GamePiece[_width, _height];
+       
     }
 
     private void Start()
@@ -75,7 +78,7 @@ public class Board : MonoBehaviour
 
     }
 
-    private void PlaceGamePiece(GamePiece gamepiece, int x, int y)
+    public void PlaceGamePiece(GamePiece gamepiece, int x, int y)
     {
         if (gamepiece == null)
         {
@@ -85,10 +88,26 @@ public class Board : MonoBehaviour
         else
         {
             gamepiece.transform.position = new Vector3Int(x, y, 0);
+            gamepiece.Init(this);
             gamepiece.SetIndex(x, y);
+            if(IsWithInBounds(x,y))
+            {
+                _gamePieceArray[x, y] = gamepiece;
+            }
         }
     }
 
+    private bool IsWithInBounds(int x, int y)
+    {
+        if (x >= 0 && x < _width && y >= 0 && y < _height)
+        {
+            return true;
+        }
+        else
+        {
+        return false;
+        }
+    }
     private void FillRandom()
     {
         for (int y = 0; y < _height; y++)
@@ -112,7 +131,7 @@ public class Board : MonoBehaviour
 
     public void DragToTile(Tile tile)
     {
-        if(_clickedTile!=null)
+        if(_clickedTile!=null && IsNeighbourTile(_clickedTile,tile))
         {
             _targetTile = tile;
         }
@@ -122,13 +141,170 @@ public class Board : MonoBehaviour
     {
         if(_targetTile!=null && _clickedTile!=null)
         {
-        
+            SwitchTiles(_clickedTile, _targetTile);
         }
 
          _clickedTile = _targetTile = null;
     }
 
-    
+    private void SwitchTiles(Tile clickedtile,Tile targettile)
+    {
+        StartCoroutine(SwitchTilesRoutine(clickedtile, targettile));
+    }
+    private IEnumerator SwitchTilesRoutine(Tile clickedtile, Tile targettile)
+    {
+        GamePiece clickedgamepiece = _gamePieceArray[clickedtile.XIndex, clickedtile.YIndex];
+        GamePiece targetgamepiece = _gamePieceArray[targettile.XIndex, targettile.YIndex];
+        
+        
 
+        clickedgamepiece.Move(targettile.XIndex, targettile.YIndex, _swapTime);
+        targetgamepiece.Move(clickedtile.XIndex, clickedtile.YIndex, _swapTime);
+
+        yield return new WaitForSeconds(_swapTime);
+        var clickgamepiecematch = FindMatchesAt(clickedgamepiece);
+        var targetgamepiecematch = FindMatchesAt(targetgamepiece);
+        if(clickgamepiecematch.Count==0 && targetgamepiecematch.Count==0)
+        {
+            clickedgamepiece.Move(clickedtile.XIndex, clickedtile.YIndex, _swapTime);
+            targetgamepiece.Move(targettile.XIndex, targettile.YIndex, _swapTime);
+        }
+        else
+        {
+            HighLightTilesAT(clickedtile);
+            HighLightTilesAT(targettile);
+        }
+        
+        
+    }
+    private bool IsNeighbourTile(Tile clickedtile,Tile draggedtile)
+    {
+        if(Mathf.Abs(clickedtile.XIndex-draggedtile.XIndex)==1 && clickedtile.YIndex==draggedtile.YIndex)
+        {
+            return true;
+        }
+        else if(Mathf.Abs(clickedtile.YIndex - draggedtile.YIndex) == 1 && clickedtile.XIndex == draggedtile.XIndex)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    private List<GamePiece> FindMatchesAt(GamePiece gamepiece,int minlength=3)
+    {
+        List<GamePiece> horizontalmatch = FindHorizontalMatch(gamepiece,minlength);
+        List<GamePiece> verticalmatch = FindVerticalMatch(gamepiece,minlength);
+
+        if (verticalmatch == null)
+        {
+            verticalmatch = new();
+        }
+        if (horizontalmatch == null)
+        {
+            horizontalmatch = new();
+        }
+        var combinedmatch = verticalmatch.Union(horizontalmatch).ToList();
+        return combinedmatch;
+    }
+
+    public void HighLightTilesAT(Tile tile)
+    {
+    var macthedgamepiece = FindMatchesAt(_gamePieceArray[tile.XIndex, tile.YIndex]);
+    foreach (GamePiece piece in macthedgamepiece)
+    {
+        _tileArray[piece.XIndex, piece.YIndex].GetComponent<SpriteRenderer>().color = piece.GetComponent<SpriteRenderer>().color;
+    }
+    }
+    private void HighlightMatches()
+    {
+        for (int y = 0; y < _height; y++)
+        {
+            for (int x = 0; x < _width; x++)
+            {
+                var combinedmatch = FindMatchesAt(_gamePieceArray[x,y]);
+                
+                foreach(GamePiece piece in combinedmatch)
+                {
+                    _tileArray[piece.XIndex, piece.YIndex].GetComponent<SpriteRenderer>().color = piece.GetComponent<SpriteRenderer>().color;
+                }
+            }
+        }
+    }
+    public List<GamePiece> FindVerticalMatch(GamePiece startpiece,int minmatch=3)
+    {
+        List<GamePiece> upwardmatch = GetMatches(startpiece, Vector2.up, 2);
+        List<GamePiece> downwardmatch = GetMatches(startpiece, Vector2.down, 2);
+        if(upwardmatch==null)
+        {
+            upwardmatch = new();
+        }
+        if(downwardmatch==null)
+        {
+            downwardmatch = new();
+        }
+    
+        var combinedmatches = upwardmatch.Union(downwardmatch).ToList();
+
+        return combinedmatches.Count >= minmatch ? combinedmatches : null;
+    }
+
+    public List<GamePiece> FindHorizontalMatch(GamePiece startpiece, int minmatch = 3)
+    {
+        List<GamePiece> rightmatch = GetMatches(startpiece, Vector2.right, 2);
+        List<GamePiece> leftmatch = GetMatches(startpiece, Vector2.left, 2);
+        if (rightmatch == null)
+        {
+            rightmatch = new();
+        }
+        if (leftmatch == null)
+        {
+            leftmatch = new();
+        }
+        var combinedmatches = rightmatch.Union(leftmatch).ToList();
+
+        return combinedmatches.Count >= minmatch ? combinedmatches : null;
+    }
+    private List<GamePiece> GetMatches(GamePiece startpiece,Vector2 direction,int minmatch=3)
+    {
+        List<GamePiece> matchlist = new();
+        if(startpiece!=null)
+        {
+            matchlist.Add(startpiece);
+        }
+        else
+        {
+            return null;
+        }
+        int maxvalue = _width > _height ? _width : _height;
+        for(int i=1; i<maxvalue;i++)
+        {
+            int x = startpiece.XIndex + i * (int)direction.x;
+            int y= startpiece.YIndex + i * (int)direction.y;
+            if(!IsWithInBounds(x,y))
+            {
+                break;
+            }
+            GamePiece nextpiece = _gamePieceArray[x, y];
+            if (nextpiece.Type==startpiece.Type)
+            {
+                matchlist.Add(nextpiece);
+            }
+            else
+            {
+                break;
+            }
+        }
+        if(matchlist.Count>=minmatch)
+        {
+  
+            return matchlist;
+        }
+        else
+        {
+            return null;
+        }
+    }
     
 }

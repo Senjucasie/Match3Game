@@ -9,9 +9,28 @@ public class GamePiece : MonoBehaviour
     [field: SerializeField] public int YIndex { get; private set; }
 
     private Coroutine _moveCoroutine;
-
+    private Board _board;
     [SerializeField] private InterpolationType _interpolationType;
     public enum InterpolationType { Linear, EaseIn, EaseOut, SmoothStep,SmootherStep };
+
+    public GamePieceType Type;
+    public enum GamePieceType
+    {
+        Yellow,
+        Blue,
+        Magenta,
+        Indigo,
+        Greeen,
+        Teal,
+        Red,
+        Cyan,
+        Wild
+    }
+
+    public void Init(Board board)
+    {
+        _board = board;
+    }
 
     public void SetIndex(int x, int y)
     {
@@ -78,9 +97,8 @@ public class GamePiece : MonoBehaviour
             transform.position = Vector3.Lerp(startpos, destination, t);
             if (Vector2.Distance(transform.position,destination)<0.01f)
             {
-                transform.position = destination;
                 reachdestination = true;
-                SetIndex((int)destination.x, (int)destination.y);
+                _board.PlaceGamePiece(this, (int)destination.x, (int)destination.y);
                 _moveCoroutine = null;
             }
                 yield return null;
