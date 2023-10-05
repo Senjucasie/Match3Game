@@ -31,8 +31,8 @@ public class Board : MonoBehaviour
     private void Start()
     {
         SetUpTiles();
-        SetUpCamera();
-        FillRandom();
+    SetUpCamera();
+    FillBoard();
     }
 
     //Instantiating BackGround Tile
@@ -101,17 +101,56 @@ public class Board : MonoBehaviour
     {
         return (x >= 0 && x < _width && y >= 0 && y < _height);
     }
-    private void FillRandom()
+    private void FillBoard()
     {
         for (int y = 0; y < _height; y++)
         {
             for (int x = 0; x < _width; x++)
             {
-                GameObject randompiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
-                PlaceGamePiece(randompiece.GetComponent<GamePiece>(), x, y);
+                GamePiece gamepiece = FillRandom(x, y);
+                int iterator = 0;
+                while(HasMatchOnFill(gamepiece))
+                {
+                    ClearGamePiece(gamepiece);
+                    gamepiece = FillRandom(x, y);
+                    iterator++;
+                    if(iterator>100)
+                    {
+                        break;
+                    }
+                   
+                }
             }
         }
     }
+
+    private GamePiece FillRandom(int x, int y)
+    {
+        GameObject randompiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
+        if(randompiece!=null)
+        {
+            PlaceGamePiece(randompiece.GetComponent<GamePiece>(), x, y);
+            return randompiece.GetComponent<GamePiece>();
+        }
+        else
+        {
+            return null;
+        }
+        
+    }
+
+    private bool HasMatchOnFill(GamePiece gamepiece,int minmatch=3)
+    {
+        List<GamePiece> leftmatches = FindMatches(gamepiece, Vector2.left, minmatch);
+        List<GamePiece> downwardmatches = FindMatches(gamepiece, Vector2.down, minmatch);
+
+        leftmatches = leftmatches == null ? new() : leftmatches;
+        downwardmatches = downwardmatches == null ? new() : downwardmatches;
+
+         return leftmatches.Count >= minmatch || downwardmatches.Count >= minmatch;
+    }
+
+   
 
     public void ClickTile(Tile tile)
     {
@@ -237,8 +276,8 @@ public class Board : MonoBehaviour
     }
     public List<GamePiece> FindVerticalMatch(GamePiece startpiece,int minmatch=3)
     {
-        List<GamePiece> upwardmatch = GetMatches(startpiece, Vector2.up, 2);
-        List<GamePiece> downwardmatch = GetMatches(startpiece, Vector2.down, 2);
+        List<GamePiece> upwardmatch = FindMatches(startpiece, Vector2.up, 2);
+        List<GamePiece> downwardmatch = FindMatches(startpiece, Vector2.down, 2);
         if(upwardmatch==null)
         {
             upwardmatch = new();
@@ -255,8 +294,8 @@ public class Board : MonoBehaviour
 
     public List<GamePiece> FindHorizontalMatch(GamePiece startpiece, int minmatch = 3)
     {
-        List<GamePiece> rightmatch = GetMatches(startpiece, Vector2.right, 2);
-        List<GamePiece> leftmatch = GetMatches(startpiece, Vector2.left, 2);
+        List<GamePiece> rightmatch = FindMatches(startpiece, Vector2.right, 2);
+        List<GamePiece> leftmatch = FindMatches(startpiece, Vector2.left, 2);
         if (rightmatch == null)
         {
             rightmatch = new();
@@ -269,7 +308,7 @@ public class Board : MonoBehaviour
 
         return combinedmatches.Count >= minmatch ? combinedmatches : null;
     }
-    private List<GamePiece> GetMatches(GamePiece startpiece,Vector2 direction,int minmatch=3)
+    private List<GamePiece> FindMatches(GamePiece startpiece,Vector2 direction,int minmatch=3)
     {
         List<GamePiece> matchlist = new();
         if(startpiece!=null)
