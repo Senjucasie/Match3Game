@@ -31,8 +31,8 @@ public class Board : MonoBehaviour
     private void Start()
     {
         SetUpTiles();
-    SetUpCamera();
-    FillBoard();
+        SetUpCamera();
+        FillBoard();
     }
 
     //Instantiating BackGround Tile
@@ -206,6 +206,7 @@ public class Board : MonoBehaviour
             {
                 var combinedgamepiece = clickgamepiecematch.Union(targetgamepiecematch).ToList();
                 ClearGamePieces(combinedgamepiece);
+                CollapseColumn(combinedgamepiece);
             }
         }
 
@@ -345,6 +346,7 @@ public class Board : MonoBehaviour
     }
     private void ClearGamePiece(GamePiece gamepiece)
     {
+        _gamePieceArray[gamepiece.XIndex, gamepiece.YIndex] = null;
         Destroy(gamepiece.gameObject);
     }
     private void ClearGamePieces(List<GamePiece> gamepiece)
@@ -354,5 +356,53 @@ public class Board : MonoBehaviour
             ClearGamePiece(piece);
         }
     }
+    List<GamePiece> CollapseColumn(int column,float speed=0.1f)
+    {
+        List<GamePiece> movinggamepiece = new();
+        for(int i=0;i<_height-1;i++)
+        {
+            if(_gamePieceArray[column,i] == null)
+            {
+                for(int j=i+1;j<_height; j++)
+                {
+                    if(_gamePieceArray[column,j]!=null)
+                    {
+                        _gamePieceArray[column, j].Move(column,i ,speed);
+                        _gamePieceArray[column, i] = _gamePieceArray[column, j];
+                        _gamePieceArray[column, i].SetIndex( column,i);
+                        if(!movinggamepiece.Contains(_gamePieceArray[column,j]))
+                        {
+                            movinggamepiece.Add(_gamePieceArray[column, j]);
+                        }
+                        _gamePieceArray[column, j] = null;
+                         break;
+                    }
+                }
+            }
+        }
+        return movinggamepiece;
+    }
+    List<GamePiece> CollapseColumn(List<GamePiece> gamepiecelist)
+    {
+        List<GamePiece> movingpiece = new();
+        List<int> columnlist = GetColumns(gamepiecelist);
+        foreach(int column in columnlist)
+        {
+            movingpiece = movingpiece.Union(CollapseColumn(column)).ToList();
+        }
+        return movingpiece;
+    }
     
+    List<int> GetColumns(List<GamePiece> gamepiecelist)
+    {
+        List<int> columnlist = new();
+        foreach(GamePiece gamepiece in gamepiecelist )
+        {
+            if(!columnlist.Contains(gamepiece.XIndex))
+            {
+                columnlist.Add(gamepiece.XIndex);
+            }
+        }
+        return columnlist;
+    }
 }
