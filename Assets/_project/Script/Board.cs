@@ -204,9 +204,8 @@ public class Board : MonoBehaviour
             }
             else
             {
-                var combinedgamepiece = clickgamepiecematch.Union(targetgamepiecematch).ToList();
-                ClearGamePieces(combinedgamepiece);
-                CollapseColumn(combinedgamepiece);
+                var gamepiecematch = clickgamepiecematch.Union(targetgamepiecematch).ToList();
+                ClearAndRefillBoard(gamepiecematch);
             }
         }
 
@@ -227,38 +226,15 @@ public class Board : MonoBehaviour
             return false;
         }
     }
-    private List<GamePiece> FindMatchesAt(GamePiece gamepiece,int minlength=3)
+   
+   
+   
+    private void HightLightTilesOff(int x, int y)
     {
-        List<GamePiece> horizontalmatch = FindHorizontalMatch(gamepiece,minlength);
-        List<GamePiece> verticalmatch = FindVerticalMatch(gamepiece,minlength);
-
-        if (verticalmatch == null)
-        {
-            verticalmatch = new();
-        }
-        if (horizontalmatch == null)
-        {
-            horizontalmatch = new();
-        }
-        var combinedmatch = verticalmatch.Union(horizontalmatch).ToList();
-        return combinedmatch;
-    }
-
-    public void HighLightTilesAT(Tile tile)
-    {
-        var macthedgamepiece = FindMatchesAt(_gamePieceArray[tile.XIndex, tile.YIndex]);
-        foreach (GamePiece piece in macthedgamepiece)
-        {
-            _tileArray[piece.XIndex, piece.YIndex].GetComponent<SpriteRenderer>().color = piece.GetComponent<SpriteRenderer>().color;
-        }
-    }
-    private void HightLightTilesOff(List<Tile> tiles)
-    {
-        foreach(Tile tile in tiles)
-        {
-            SpriteRenderer renderer=tile.GetComponent<SpriteRenderer>();
+        
+            SpriteRenderer renderer=_tileArray[x,y].GetComponent<SpriteRenderer>();
             renderer.color = new Color(renderer.color.r, renderer.color.g, renderer.color.b, 0);
-        }
+        
     }
     private void HighlightMatches()
     {
@@ -275,7 +251,40 @@ public class Board : MonoBehaviour
             }
         }
     }
-    public List<GamePiece> FindVerticalMatch(GamePiece startpiece,int minmatch=3)
+    private void HighLightGamePieces(List<GamePiece> matchlist)
+    {
+        foreach (GamePiece piece in matchlist)
+        {
+            _tileArray[piece.XIndex, piece.YIndex].GetComponent<SpriteRenderer>().color = piece.GetComponent<SpriteRenderer>().color;
+        }
+    }
+
+    public List<GamePiece> FindMatchesAt(List<GamePiece> gamepieceslist)
+    {
+        List<GamePiece> matches = new();
+        foreach(GamePiece gamepiece in gamepieceslist)
+        {
+            matches = matches.Union(FindMatchesAt(gamepiece)).ToList();
+        }
+        return matches;
+    }
+    private List<GamePiece> FindMatchesAt(GamePiece gamepiece, int minlength = 3)
+    {
+        List<GamePiece> horizontalmatch = FindHorizontalMatch(gamepiece, minlength);
+        List<GamePiece> verticalmatch = FindVerticalMatch(gamepiece, minlength);
+
+        if (verticalmatch == null)
+        {
+        verticalmatch = new();
+        }
+        if (horizontalmatch == null)
+        {
+        horizontalmatch = new();
+        }
+        var combinedmatch = verticalmatch.Union(horizontalmatch).ToList();
+        return combinedmatch;
+    }
+    private List<GamePiece> FindVerticalMatch(GamePiece startpiece,int minmatch=3)
     {
         List<GamePiece> upwardmatch = FindMatches(startpiece, Vector2.up, 2);
         List<GamePiece> downwardmatch = FindMatches(startpiece, Vector2.down, 2);
@@ -292,8 +301,7 @@ public class Board : MonoBehaviour
 
         return combinedmatches.Count >= minmatch ? combinedmatches : null;
     }
-
-    public List<GamePiece> FindHorizontalMatch(GamePiece startpiece, int minmatch = 3)
+    private List<GamePiece> FindHorizontalMatch(GamePiece startpiece, int minmatch = 3)
     {
         List<GamePiece> rightmatch = FindMatches(startpiece, Vector2.right, 2);
         List<GamePiece> leftmatch = FindMatches(startpiece, Vector2.left, 2);
@@ -344,9 +352,11 @@ public class Board : MonoBehaviour
         return matchlist.Count >= minmatch ? matchlist : null;
         
     }
+
     private void ClearGamePiece(GamePiece gamepiece)
     {
         _gamePieceArray[gamepiece.XIndex, gamepiece.YIndex] = null;
+        HightLightTilesOff(gamepiece.XIndex, gamepiece.YIndex);
         Destroy(gamepiece.gameObject);
     }
     private void ClearGamePieces(List<GamePiece> gamepiece)
@@ -405,4 +415,44 @@ public class Board : MonoBehaviour
         }
         return columnlist;
     }
+
+    private void ClearAndRefillBoard(List<GamePiece> gamepiecelist)
+    {
+        StartCoroutine(ClearAndRefillBoardRoutine(gamepiecelist));
+    }
+
+    private IEnumerator ClearAndRefillBoardRoutine(List<GamePiece> gamepiecelist)
+    {
+        //clear and collapse board
+        StartCoroutine(ClearAndCollapseRoutine(gamepiecelist));
+        yield return null;
+
+        //refill board
+    }
+
+    private IEnumerator ClearAndCollapseRoutine(List<GamePiece> gamepiecelist)
+    {
+        List<GamePiece> movingpieces = new();
+        List<GamePiece> matches = new();
+
+        HighLightGamePieces(gamepiecelist);
+
+        yield return new WaitForSeconds(0.25f);
+
+        ClearGamePieces(gamepiecelist);
+
+        yield return new WaitForSeconds(0.25f);
+
+        movingpieces = CollapseColumn(gamepiecelist);
+
+        yield return new WaitForSeconds(0.25f);
+
+        matches = FindMatchesAt(movingpieces);
+        if(matches.Count !=0)
+        {
+            StartCoroutine(ClearAndCollapseRoutine(matches));
+        }
+      
+    }
+
 }
