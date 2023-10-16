@@ -377,7 +377,7 @@ public class Board : MonoBehaviour
                 {
                     if(_gamePieceArray[column,j]!=null)
                     {
-                        _gamePieceArray[column, j].Move(column,i ,speed);
+                        _gamePieceArray[column, j].Move(column,i ,speed*(j-i));
                         _gamePieceArray[column, i] = _gamePieceArray[column, j];
                         _gamePieceArray[column, i].SetIndex( column,i);
                         if(!movinggamepiece.Contains(_gamePieceArray[column,j]))
@@ -444,15 +444,30 @@ public class Board : MonoBehaviour
         yield return new WaitForSeconds(0.25f);
 
         movingpieces = CollapseColumn(gamepiecelist);
-
-        yield return new WaitForSeconds(0.25f);
+        while(!IsGamePieceMoving(movingpieces))
+        {
+            yield return null;
+        }
+        yield return new WaitForSeconds(0.5f);
 
         matches = FindMatchesAt(movingpieces);
         if(matches.Count !=0)
         {
             StartCoroutine(ClearAndCollapseRoutine(matches));
         }
-      
+    }
+
+    private bool IsGamePieceMoving(List<GamePiece> gamepiecelist)
+    {
+        foreach (GamePiece gamepiece in gamepiecelist)
+        {
+            if(gamepiece.transform.position.y-(float)gamepiece.YIndex>0.001f)
+            {
+                return true;
+            }
+    
+        }
+        return false;
     }
 
 }
