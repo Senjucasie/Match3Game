@@ -104,36 +104,44 @@ public class Board : MonoBehaviour
     {
         return (x >= 0 && x < _width && y >= 0 && y < _height);
     }
-    private void FillBoard()
+
+    private void FillBoard(int yoffset = 0, float speed=0)
     {
         for (int y = 0; y < _height; y++)
         {
             for (int x = 0; x < _width; x++)
             {
-                GamePiece gamepiece = FillRandom(x, y);
+                if (_gamePieceArray[x, y] != null)
+                    continue;
+                GamePiece gamepiece = FillRandom(x, y,yoffset,speed);
                 int iterator = 0;
                 while(HasMatchOnFill(gamepiece))
                 {
                     ClearGamePiece(gamepiece);
-                    gamepiece = FillRandom(x, y);
+                    gamepiece = FillRandom(x, y, yoffset, speed);
                     iterator++;
+
                     if(iterator>100)
-                    {
                         break;
-                    }
-                   
                 }
             }
         }
     }
 
-    private GamePiece FillRandom(int x, int y)
+    private GamePiece FillRandom(int x, int y,float yoffset,float speed)
     {
         GameObject randompiece = Instantiate(GetRandomGamePiece(), Vector3.zero, Quaternion.identity);
-        if(randompiece!=null)
+        GamePiece gamepiece = randompiece.GetComponent<GamePiece>();
+        if(gamepiece != null)
         {
-            PlaceGamePiece(randompiece.GetComponent<GamePiece>(), x, y);
-            return randompiece.GetComponent<GamePiece>();
+            PlaceGamePiece(gamepiece, x, y);
+            
+            if(yoffset!=0)
+            {
+                randompiece.transform.position = new Vector3(x, y + yoffset, 0);
+                gamepiece.Move(x, y, speed);
+            }
+            return gamepiece;
         }
         else
         {
@@ -384,9 +392,9 @@ public class Board : MonoBehaviour
                         _gamePieceArray[column, j].Move(column,i ,speed*(j-i));
                         _gamePieceArray[column, i] = _gamePieceArray[column, j];
                         _gamePieceArray[column, i].SetIndex( column,i);
-                        if(!movinggamepiece.Contains(_gamePieceArray[column,j]))
+                        if(!movinggamepiece.Contains(_gamePieceArray[column,i]))
                         {
-                            movinggamepiece.Add(_gamePieceArray[column, j]);
+                            movinggamepiece.Add(_gamePieceArray[column, i]);
                         }
                         _gamePieceArray[column, j] = null;
                          break;
@@ -432,7 +440,7 @@ public class Board : MonoBehaviour
         yield return StartCoroutine(ClearAndCollapseRoutine(gamepiecelist));
 
         //refill board
-
+        yield return StartCoroutine(ReFillBoard());
         _isGamePieceMoving = false;
     }
 
@@ -451,22 +459,32 @@ public class Board : MonoBehaviour
 
         movingpieces = CollapseColumn(gamepiecelist);
 
-        while(!IsGamePieceMoving(movingpieces))
+        while(IsGamePieceMoving(movingpieces))
         {
             yield return null;
         }
 
+        yield return new WaitForSeconds(0.5f);
+
         matches = FindMatchesAt(movingpieces);
         if(matches.Count !=0)
         {
-            StartCoroutine(ClearAndCollapseRoutine(matches));
+           yield return StartCoroutine(ClearAndCollapseRoutine(matches));
         }
+    }
+
+    private IEnumerator ReFillBoard()
+    {
+        FillBoard(10,0.7f);
+        yield return null;
     }
 
     private bool IsGamePieceMoving(List<GamePiece> gamepiecelist)
     {
         foreach (GamePiece gamepiece in gamepiecelist)
         {
+            if (gamepiece == null)
+                Debug.Log(gamepiece is null);
             if(gamepiece.transform.position.y-(float)gamepiece.YIndex>0.001f)
             {
                 return true;
