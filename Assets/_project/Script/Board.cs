@@ -21,8 +21,11 @@ public class Board : MonoBehaviour
     private Tile _clickedTile;
     private Tile _targetTile;
 
+    private bool _isGamePieceMoving;
+
     private void Awake()
     {
+        _isGamePieceMoving = false;
         _tileArray = new Tile[_width, _height];
         _gamePieceArray = new GamePiece[_width, _height];
        
@@ -181,7 +184,8 @@ public class Board : MonoBehaviour
 
     private void SwitchTiles(Tile clickedtile,Tile targettile)
     {
-        StartCoroutine(SwitchTilesRoutine(clickedtile, targettile));
+        if(!_isGamePieceMoving)
+            StartCoroutine(SwitchTilesRoutine(clickedtile, targettile));
     }
     private IEnumerator SwitchTilesRoutine(Tile clickedtile, Tile targettile)
     {
@@ -424,10 +428,12 @@ public class Board : MonoBehaviour
     private IEnumerator ClearAndRefillBoardRoutine(List<GamePiece> gamepiecelist)
     {
         //clear and collapse board
-        StartCoroutine(ClearAndCollapseRoutine(gamepiecelist));
-        yield return null;
+        _isGamePieceMoving = true;
+        yield return StartCoroutine(ClearAndCollapseRoutine(gamepiecelist));
 
         //refill board
+
+        _isGamePieceMoving = false;
     }
 
     private IEnumerator ClearAndCollapseRoutine(List<GamePiece> gamepiecelist)
@@ -437,18 +443,18 @@ public class Board : MonoBehaviour
 
         HighLightGamePieces(gamepiecelist);
 
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
 
         ClearGamePieces(gamepiecelist);
 
-        yield return new WaitForSeconds(0.25f);
+        yield return new WaitForSeconds(0.5f);
 
         movingpieces = CollapseColumn(gamepiecelist);
+
         while(!IsGamePieceMoving(movingpieces))
         {
             yield return null;
         }
-        yield return new WaitForSeconds(0.5f);
 
         matches = FindMatchesAt(movingpieces);
         if(matches.Count !=0)
