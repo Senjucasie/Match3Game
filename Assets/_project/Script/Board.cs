@@ -440,7 +440,7 @@ public class Board : MonoBehaviour
         yield return StartCoroutine(ClearAndCollapseRoutine(gamepiecelist));
 
         //refill board
-        yield return StartCoroutine(ReFillBoard());
+        yield return StartCoroutine(ReFillBoardRoutine());
         _isGamePieceMoving = false;
     }
 
@@ -473,7 +473,7 @@ public class Board : MonoBehaviour
         }
     }
 
-    private IEnumerator ReFillBoard()
+    private IEnumerator ReFillBoardRoutine()
     {
         FillBoard(10,0.7f);
         yield return null;
