@@ -484,7 +484,7 @@ public class Board : MonoBehaviour
         foreach (GamePiece gamepiece in gamepiecelist)
         {
             if (gamepiece == null)
-                Debug.Log(gamepiece is null);
+                Debug.LogError(gamepiece is null);
             if(gamepiece.transform.position.y-(float)gamepiece.YIndex>0.001f)
             {
                 return true;
